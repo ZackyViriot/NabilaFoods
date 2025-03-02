@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  price       Float
+  imageUrl    String?  // Keep the URL field but make it optional
+  imageData   Bytes?   // Add binary image storage
+  imageMime   String?  // Add MIME type for binary storage
+  images      ProductImage[] // Add support for multiple images
+  reviews     Review[]  // One-to-Many relationship (Product has many Reviews)
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  imageData Bytes
+  imageMime String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  order     Int      @default(0) // For ordering the images
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+  name     String
+  role     Role    @default(USER)
+  reviews  Review[] // One-to-Many relationship (User can post multiple Reviews)
+}
+
+model TempUpload {
+  id        String   @id @default(uuid())
+  imageData Bytes
+  imageMime String
+  createdAt DateTime
+}
+
+enum Role {
+  USER
+  ADMIN
+}
