@@ -1,9 +1,21 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Validate database connection
+  try {
+    await prisma.$connect();
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return res.status(500).json({ 
+      error: 'Database connection failed', 
+      details: error instanceof Error ? error.message : 'Unknown error',
+      env: process.env.NODE_ENV,
+      hasUrl: !!process.env.DATABASE_URL
+    });
+  }
+
   if (req.method === 'POST') {
     const { name, description, price, tempImageId } = req.body;
 
@@ -59,10 +71,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     } catch (error) {
       console.error('Product creation error:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Internal Server Error', details: error instanceof Error ? error.message : 'Unknown error' });
     }
   } else if (req.method === 'GET') {
     try {
+      console.log('Fetching products...');
+      
       const products = await prisma.product.findMany({
         include: {
           reviews: {
@@ -77,16 +91,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
 
-      // Transform the response to include image URLs
+      console.log('Products fetched successfully:', products.length);
+
       const productsWithUrls = products.map(({ imageData, imageMime, ...rest }) => ({
         ...rest,
         imageUrl: `/api/products/${rest.id}/image`
       }));
 
-      res.status(200).json(productsWithUrls);
+      return res.status(200).json(productsWithUrls);
     } catch (error) {
       console.error('Error fetching products:', error);
-      res.status(500).json({ error: 'Failed to fetch products' });
+      
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        return res.status(500).json({ 
+          error: 'Database error', 
+          code: error.code,
+          message: error.message
+        });
+      }
+      
+      return res.status(500).json({ 
+        error: 'Failed to fetch products', 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    } finally {
+      await prisma.$disconnect();
     }
   } else {
     res.status(405).json({ error: 'Method Not Allowed' });
