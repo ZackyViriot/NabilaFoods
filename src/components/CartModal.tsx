@@ -2,6 +2,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { ShoppingBag, X, Minus, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 
 interface CartItem {
     id: string;
@@ -80,12 +81,16 @@ export default function CartModal({ isOpen, onClose, items, onUpdateQuantity, on
                                     ) : (
                                         <div className="space-y-4">
                                             {items.map((item) => (
-                                                <div key={item.id} className="flex items-center gap-4">
-                                                    <img
-                                                        src={item.imageUrl}
-                                                        alt={item.name}
-                                                        className="h-16 w-16 rounded-lg object-cover"
-                                                    />
+                                                <div key={item.id} className="flex items-center py-4 border-b">
+                                                    <div className="relative w-20 h-20 flex-shrink-0">
+                                                        <Image
+                                                            src={item.imageUrl}
+                                                            alt={item.name}
+                                                            fill
+                                                            className="rounded-lg object-cover"
+                                                            sizes="(max-width: 768px) 80px, 80px"
+                                                        />
+                                                    </div>
                                                     <div className="flex-1">
                                                         <h4 className="font-medium text-gray-900">{item.name}</h4>
                                                         <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>

@@ -3,6 +3,7 @@ import { Star, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import ProductDetailsModal from './ProductDetailsModal';
 import ReviewModal from './ReviewModal';
+import Image from 'next/image';
 
 interface Review {
     id: string;
@@ -58,13 +59,17 @@ export default function ProductCard({ product }: ProductCardProps) {
                     className="relative cursor-pointer"
                     onClick={() => setIsDetailsModalOpen(true)}
                 >
-                    <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-full h-48 object-cover"
-                    />
+                    <div className="relative w-full h-48">
+                        <Image
+                            src={product.imageUrl}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                    </div>
                     {highlyRated && (
-                        <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                        <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full flex items-center z-10">
                             <Star className="w-3 h-3 mr-1" />
                             Top Rated
                         </div>

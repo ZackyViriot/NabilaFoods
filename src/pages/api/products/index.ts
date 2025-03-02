@@ -78,13 +78,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       // Transform the response to include image URLs
-      const productsWithUrls = products.map(product => {
-        const { imageData, ...rest } = product;
-        return {
-          ...rest,
-          imageUrl: `/api/products/${product.id}/image`
-        };
-      });
+      const productsWithUrls = products.map(({ imageData, imageMime, ...rest }) => ({
+        ...rest,
+        imageUrl: `/api/products/${rest.id}/image`
+      }));
 
       res.status(200).json(productsWithUrls);
     } catch (error) {

@@ -37,9 +37,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const token = signToken(user.id, user.email);
 
     // Remove password from user object before sending
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: userPassword, ...userWithoutPassword } = user;
     
-    return res.status(201).json({ user: userWithoutPassword, token });
+    return res.status(201).json({
+      token,
+      user: userWithoutPassword
+    });
   } catch (error) {
     console.error("Registration error:", error);
     return res.status(500).json({ error: 'Error creating user' });
